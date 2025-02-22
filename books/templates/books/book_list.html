@@ -1,16 +1,42 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Book List</title>
-</head>
-<body>
-    <h1>Book List</h1>
+{% block content %}
+    <h1>Книжный каталог</h1>
+    
+    {% if user.is_authenticated and user.profile.role == 'user' or user.profile.role == 'admin' %}
+        <a href="{% url 'book_create' %}">Добавить новую книгу</a>
+    {% endif %}
+
     <ul>
         {% for book in books %}
-            <li>{{ book.title }} by {{ book.author }} - ${{ book.price }}</li>
+            <li>
+                {{ book.title }} от автора: {{ book.author }} ({{ book.published_date|date:"Y-m-d" }})
+                
+                {% if user.is_authenticated and user.profile.role == 'admin' %}
+                    <a href="{% url 'book_update' book.pk %}">Изменить</a>
+                    <a href="{% url 'book_delete' book.pk %}">Удалить</a>
+                {% endif %}
+            </li>
+        {% empty %}
+            <li>Нет книг.</li>
         {% endfor %}
     </ul>
-</body>
-</html>
+
+    {% if is_paginated %}
+        <div class="pagination">
+            <span class="step-links">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1">&laquo; Первая</a>
+                    <a href="?page={{ page_obj.previous_page_number }}">Предыдущая</a>
+                {% endif %}
+
+                <span class="current">
+                    Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}.
+                </span>
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}">Следующая</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}">Последняя &raquo;</a>
+                {% endif %}
+            </span>
+        </div>
+    {% endif %}
+{% endblock %}
